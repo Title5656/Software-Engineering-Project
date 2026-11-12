@@ -1,4 +1,4 @@
-import { seed, change, read, day, roles, authenticate, demoPassword, availability, balance, unitStatus } from './model.mjs';
+import { seed, upgradeDemo, registrationExample, change, read, day, roles, authenticate, demoPassword, availability, balance, unitStatus } from './model.mjs';
 import { esc, icon, badge, cash, dateLabel, field, section, link, empty } from './ui.mjs';
 import { accounts, units, residents, leases, reception, announcements, reports, displayName, byId, roomOptions, rangeForm } from './office.mjs';
 import { repairs, booking, finance } from './operations.mjs';
@@ -40,8 +40,7 @@ let toastTimeout;
 
 function load() {
   try {
-    const data = JSON.parse(localStorage.getItem(dataKey));
-    if (data?.version === 1 && Array.isArray(data.users)) return data;
+    return upgradeDemo(JSON.parse(localStorage.getItem(dataKey)));
   } catch { /* Start with sample data if storage is unavailable. */ }
   return seed();
 }
@@ -71,7 +70,7 @@ function activeUser() {
 }
 
 function brand() {
-  return '<a class="brand" href="#/home"><span class="brand-mark">' + icon('brand') + '</span><span><strong>บ้านร่วม</strong><small>จัดการคอนโดมิเนียม</small></span></a>';
+  return '<a class="brand" href="#/home"><span class="brand-mark">' + icon('brand') + '</span><span><strong>Salaya Two resident</strong><small>จัดการคอนโดมิเนียม</small></span></a>';
 }
 function button(label, callback, { primary = false, symbol = '', style = '' } = {}) {
   const index = callbacks.push(callback) - 1;
@@ -164,7 +163,8 @@ function authDialog(register) {
     }
     signIn(form.username,form.password);
   }, { submitLabel:register ? 'สร้างบัญชีเดโม' : 'เข้าสู่ระบบ',
-    summary:register ? 'ทะเบียนตัวอย่างสำหรับลงทะเบียน · ธารา ตัวอย่าง · 0800000003 · A-602' : 'บัญชีเดโม office, resident, resident2, tech และ tech2 ใช้รหัสผ่าน demo123' });
+    summary:register ? ['ทะเบียนตัวอย่างสำหรับลงทะเบียน', registrationExample.name, registrationExample.phone, registrationExample.room].join(' · ') :
+      'บัญชีเดโม office, resident, resident2, tech และ tech2 ใช้รหัสผ่าน demo123' });
 }
 function resetDialog() {
   submitForm('คืนค่าข้อมูลเดโม',[],() => {

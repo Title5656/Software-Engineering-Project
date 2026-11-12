@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { seed, change, read, day, balance, authenticate } from '../docs/model.mjs';
+import { seed, change, read, day, balance, authenticate, upgradeDemo, registrationExample } from '../docs/model.mjs';
 
 const action = (db, user, op, fields) => change(db, user, op, fields);
 
@@ -62,7 +62,7 @@ test('booking conflict, adjacent time, and resident profile consistency', () => 
 
 test('registration, disabled access, parcels, and published announcements', () => {
   const db = seed();
-  const user = action(db, '', 'register', { username: 'new.demo', password: 'demo123', name: 'ธารา ตัวอย่าง', phone: '0800000003', unit: 'RM3' });
+  const user = action(db, '', 'register', { ...registrationExample, username: 'new.demo', password: 'demo123' });
   assert.equal(authenticate(db, 'new.demo', 'demo123').id, user.id);
   const parcel = action(db, 'A1', 'parcel', { resident: 'R3', carrier: 'เดโม', tracking: 'TK-1', time: day(0) + 'T10:00' });
   assert.equal(read(db, user.id).parcels[0].status, 'waiting');
@@ -85,4 +85,25 @@ test('admin can reassign a working repair after technician suspension', () => {
   assert.equal(read(db, 'T2').repairs.some(r => r.id === 'RP-01'), true);
   action(db, 'T2', 'progress', { id: 'RP-01', status: 'done', note: 'ซ่อมเสร็จ' });
   assert.equal(read(db, 'U1').repairs[0].status, 'done');
+});
+
+test('fresh and existing demos get the new cast while keeping user edits and activity', () => {
+  const fresh = seed();
+  assert.equal(fresh.residents.find(r => r.id === 'R1').name, 'เจนเซน หวัง');
+  const previous = seed();
+  previous.version = 1;
+  previous.users.find(u => u.id === 'A1').name = 'กมล วัฒนกุล';
+  previous.residents.find(r => r.id === 'R1').name = 'พิมพ์ชนก วงศ์ดี';
+  previous.residents.find(r => r.id === 'R2').name = 'ชื่อที่ผู้ใช้ตั้งเอง';
+  previous.visitors[0].name = 'ผู้มาติดต่อ ตัวอย่าง';
+  previous.repairs.push({ id: 'RP-MY-TEST', title: 'รายการที่ผู้ใช้สร้าง' });
+  const next = upgradeDemo(previous);
+  assert.equal(next.version, 2);
+  assert.equal(next.users.find(u => u.id === 'A1').name, 'ลิซา ซู');
+  assert.equal(next.residents.find(r => r.id === 'R1').name, 'เจนเซน หวัง');
+  assert.equal(next.residents.find(r => r.id === 'R2').name, 'ชื่อที่ผู้ใช้ตั้งเอง');
+  assert.equal(next.visitors[0].name, 'สัตยา นาเดลลา');
+  assert.equal(next.repairs.at(-1).id, 'RP-MY-TEST');
+  assert.equal(authenticate(next, 'resident', 'demo123').id, 'U1');
+  assert.deepEqual(upgradeDemo(next), next);
 });

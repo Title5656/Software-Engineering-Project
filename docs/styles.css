@@ -33,7 +33,7 @@ button, a, input, select, textarea { -webkit-tap-highlight-color:transparent }
 .button.compact { min-height:35px; padding:6px 10px; font-size:.89rem; margin:2px 4px 2px 0 }
 .icon-button { width:39px; padding:0 }
 .brand { display:flex; align-items:center; gap:11px; line-height:1.27; width:max-content; max-width:100% }
-.brand-mark { display:grid; place-items:center; background:#d2ecdf; color:#134438; border-radius:12px; width:43px; height:43px }
+.brand-mark { display:grid; place-items:center; background:#d2ecdf; color:#134438; border-radius:12px; width:43px; height:43px; flex:none }
 .brand-mark .icon { width:25px;height:25px }
 .brand strong { display:block; font-size:1.2rem; letter-spacing:-.03em }
 .brand small { font-size:.75rem; opacity:.82 }

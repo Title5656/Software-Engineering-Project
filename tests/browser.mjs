@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { createServer } from 'node:http';
 import { readFile } from 'node:fs/promises';
 import { createRequire } from 'node:module';
-import { day } from '../docs/model.mjs';
+import { day, seed, registrationExample } from '../docs/model.mjs';
 import { dateLabel } from '../docs/ui.mjs';
 
 const require = createRequire(import.meta.url);
@@ -50,7 +50,17 @@ try {
 
     const response = await page.goto(url);
     assert.equal(response.status(),200);
+    assert.match(await page.title(), /^Salaya Two resident/);
+    await has('Salaya Two resident',page.locator('.landing-top'));
     await has('เลือกบทบาทเพื่อเริ่มเดโม');
+    if (width === 1440) {
+      const legacy = seed();
+      legacy.version = 1;
+      legacy.residents[0].name = 'พิมพ์ชนก วงศ์ดี';
+      legacy.users[0].name = 'กมล วัฒนกุล';
+      await page.evaluate(data => localStorage.setItem('baanruam-demo-v1',JSON.stringify(data)),legacy);
+      await page.reload();
+    }
     if (width === 1440 && process.env.DEMO_SCREENSHOT) await page.screenshot({path:process.env.DEMO_SCREENSHOT + '-landing.png'});
     await click('เข้าสู่ระบบ');
     await fill('username','resident');
@@ -60,10 +70,11 @@ try {
     await modal.getByRole('button',{name:'ยกเลิก'}).click();
     await click('ลงทะเบียนผู้พักอาศัย');
     await fill('username','new.demo'); await fill('password','demo123');
-    await fill('name','ธารา ตัวอย่าง'); await fill('phone','0800000003'); await choose('unit','RM3');
-    await submit('สร้างบัญชีเดโม'); await has('สวัสดี คุณธารา');
+    await fill('name',registrationExample.name); await fill('phone',registrationExample.phone); await choose('unit',registrationExample.unit);
+    await submit('สร้างบัญชีเดโม'); await has('สวัสดี คุณมาร์ก');
 
     await switchTo('ผู้พักอาศัย');
+    await has('สวัสดี คุณเจนเซน');
     if (width === 390) {
       await click('เมนู');
       await page.getByRole('navigation',{name:'เมนูหลัก'}).getByRole('link',{name:'สัญญาเช่า'}).click();
@@ -71,6 +82,7 @@ try {
     await click('ขอต่อสัญญา'); await fill('end',day(100)); await submit();
     await has('รอพิจารณา');
     await switchTo('นิติบุคคล');
+    await has('สวัสดี คุณลิซา');
     if (width === 1440 && process.env.DEMO_SCREENSHOT) await page.screenshot({path:process.env.DEMO_SCREENSHOT + '-dashboard.png'});
     await go('leases'); await click('พิจารณา'); await choose('decision','approved'); await submit();
     await has('อนุมัติ');
@@ -80,7 +92,7 @@ try {
     await has('รอพิจารณา');
     await switchTo('นิติบุคคล'); await go('leases'); await click('พิจารณา'); await choose('decision','rejected'); await submit();
     await switchTo('ผู้พักอาศัย'); await go('leases'); await has('ปฏิเสธ'); await has(dateLabel(day(100)),row('L1'));
-    await go('profile'); await click('แก้ไขโปรไฟล์'); await fill('name','พิมพ์ชนก ทดสอบ'); await submit(); await has('พิมพ์ชนก ทดสอบ');
+    await go('profile'); await click('แก้ไขโปรไฟล์'); await fill('name','เจนเซน ทดสอบ'); await submit(); await has('เจนเซน ทดสอบ');
 
     await go('repairs'); await click('แจ้งซ่อม'); await choose('location','F1'); await fill('title','ไฟห้องออกกำลังกายดับ');
     await fill('detail','เปิดสวิตช์แล้วไฟไม่ติด'); await choose('attachment','sample'); await submit(); await has('รูปประกอบตัวอย่าง');
@@ -122,11 +134,11 @@ try {
     await go('residents'); await click('เพิ่มผู้พัก'); await fill('name','ผู้พักเพิ่มทดสอบ'); await fill('phone','0800000020'); await submit();
     await rowButton('ผู้พักเพิ่มทดสอบ','แก้ไข'); await fill('phone','0800000021'); await submit(); await has('0800000021',row('ผู้พักเพิ่มทดสอบ'));
     await rowButton('ผู้พักเพิ่มทดสอบ','ลบ'); await submit('ยืนยัน'); await row('ผู้พักเพิ่มทดสอบ').waitFor({state:'hidden'});
-    await has('พิมพ์ชนก ทดสอบ');
+    await has('เจนเซน ทดสอบ');
     await click('บันทึกย้ายเข้า–ออก'); await choose('resident','R1'); await choose('lease','L1'); await choose('direction','out'); await submit(); await has('ย้ายออก');
-    await click('บันทึกย้ายเข้า–ออก'); await choose('resident','R1'); await choose('lease','L1'); await choose('direction','in'); await submit(); await has('A-804',row('พิมพ์ชนก ทดสอบ'));
+    await click('บันทึกย้ายเข้า–ออก'); await choose('resident','R1'); await choose('lease','L1'); await choose('direction','in'); await submit(); await has('A-804',row('เจนเซน ทดสอบ'));
     await go('leases'); await click('สร้างสัญญา'); await choose('resident','R3'); await choose('unit','RM3'); await fill('rent','7700'); await submit();
-    const newLease = row('ธารา ตัวอย่าง');
+    const newLease = row(registrationExample.name);
     await newLease.getByRole('button',{name:'แก้ไข',exact:true}).click(); await fill('rent','8800'); await submit();
     await has('8,800',newLease);
     await newLease.getByRole('button',{name:'สิ้นสุดสัญญา',exact:true}).click(); await submit('ยืนยัน'); await has('สิ้นสุด',newLease);

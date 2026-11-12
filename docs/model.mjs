@@ -8,27 +8,63 @@ export function day(offset = 0) {
 export const roles = { resident: 'ผู้พักอาศัย', admin: 'นิติบุคคล', tech: 'ช่างซ่อม' };
 export const demoPassword = 'demo123';
 
+const demoVersion = 2;
+const cast = {
+  users: {
+    A1: ['กมล วัฒนกุล', 'ลิซา ซู'],
+    T1: ['นนท์ ศรีอาคาร', 'อีลอน มัสก์'],
+    T2: ['ภพ ดีพร้อม', 'ทิม คุก'],
+  },
+  residents: {
+    R1: ['พิมพ์ชนก วงศ์ดี', 'เจนเซน หวัง'],
+    R2: ['กิตติ สมใจ', 'แซม อัลต์แมน'],
+    R3: ['ธารา ตัวอย่าง', 'มาร์ก ซักเคอร์เบิร์ก'],
+  },
+  visitors: {
+    'VS-01': ['ผู้มาติดต่อ ตัวอย่าง', 'สัตยา นาเดลลา'],
+  },
+};
+
+export const registrationExample = {
+  name: cast.residents.R3[1], phone: '0800000003', unit: 'RM3', room: 'A-602',
+};
+
+export function upgradeDemo(data) {
+  if (!Array.isArray(data?.users)) return seed();
+  if (data.version === demoVersion) return data;
+  if (data.version !== 1) return seed();
+  const updated = structuredClone(data);
+  for (const [collection, names] of Object.entries(cast)) {
+    for (const record of updated[collection]) {
+      const namesForRecord = names[record.id];
+      if (namesForRecord && record.name === namesForRecord[0]) record.name = namesForRecord[1];
+    }
+  }
+  updated.version = demoVersion;
+  return updated;
+}
+
 export function seed() {
   const users = [
-    ['A1', 'office', 'admin', '', 'กมล วัฒนกุล'],
-    ['U1', 'resident', 'resident', 'R1', ''],
-    ['U2', 'resident2', 'resident', 'R2', ''],
-    ['T1', 'tech', 'tech', '', 'นนท์ ศรีอาคาร'],
-    ['T2', 'tech2', 'tech', '', 'ภพ ดีพร้อม'],
-  ].map(([id, username, role, resident, name]) => ({
-    id, username, role, resident, name, phone: '0800000000', password: demoPassword, status: 'active',
+    ['A1', 'office', 'admin', ''],
+    ['U1', 'resident', 'resident', 'R1'],
+    ['U2', 'resident2', 'resident', 'R2'],
+    ['T1', 'tech', 'tech', ''],
+    ['T2', 'tech2', 'tech', ''],
+  ].map(([id, username, role, resident]) => ({
+    id, username, role, resident, name: cast.users[id]?.[1] ?? '', phone: '0800000000', password: demoPassword, status: 'active',
   }));
   return {
-    version: 1, next: 100, users,
+    version: demoVersion, next: 100, users,
     units: [
       ['RM1','A','8','A-804','open'], ['RM2','B','4','B-406','open'],
       ['RM3','A','6','A-602','open'], ['RM4','B','3','B-305','open'],
       ['RM5','A','9','A-902','closed'],
     ].map(([id, building, floor, number, status]) => ({ id, building, floor, number, status })),
     residents: [
-      { id: 'R1', name: 'พิมพ์ชนก วงศ์ดี', phone: '0800000001', unit: 'RM1' },
-      { id: 'R2', name: 'กิตติ สมใจ', phone: '0800000002', unit: 'RM2' },
-      { id: 'R3', name: 'ธารา ตัวอย่าง', phone: '0800000003', unit: 'RM3' },
+      { id: 'R1', name: cast.residents.R1[1], phone: '0800000001', unit: 'RM1' },
+      { id: 'R2', name: cast.residents.R2[1], phone: '0800000002', unit: 'RM2' },
+      { id: 'R3', name: registrationExample.name, phone: registrationExample.phone, unit: registrationExample.unit },
     ],
     leases: [
       { id: 'L1', resident: 'R1', unit: 'RM1', start: day(-335), end: day(25), rent: 9500, status: 'active' },
@@ -52,7 +88,7 @@ export function seed() {
     ],
     payments: [{ id: 'PY-01', invoice: 'IV-02', amount: 8000, time: day(-14) + 'T09:00', proof: 'sample', status: 'approved', verified: 8000 }],
     receipts: [{ id: 'RC-01', invoice: 'IV-02', payment: 'PY-01', amount: 8000, date: day(-13) }],
-    visitors: [{ id: 'VS-01', name: 'ผู้มาติดต่อ ตัวอย่าง', unit: 'RM2', purpose: 'เยี่ยมผู้พัก', entered: day(0) + 'T09:30', exited: '' }],
+    visitors: [{ id: 'VS-01', name: cast.visitors['VS-01'][1], unit: 'RM2', purpose: 'เยี่ยมผู้พัก', entered: day(0) + 'T09:30', exited: '' }],
     parcels: [{ id: 'PK-01', resident: 'R1', unit: 'RM1', carrier: 'ขนส่งตัวอย่าง', tracking: 'DEMO-804', time: day(0) + 'T10:20', status: 'waiting', delivered: '' }],
     announcements: [
       { id: 'AN-01', title: 'ตรวจระบบน้ำอาคาร A', detail: 'ทีมอาคารจะตรวจระบบน้ำช่วง 10:00–12:00 น. หากพบแรงดันน้ำลดลง กรุณาแจ้งนิติบุคคลผ่านเมนูแจ้งซ่อม', date: day(0), status: 'published' },
