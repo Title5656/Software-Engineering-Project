@@ -70,7 +70,7 @@ function activeUser() {
 }
 
 function brand() {
-  return '<a class="brand" href="#/home"><span class="brand-mark">' + icon('brand') + '</span><span><strong>Salaya Two resident</strong><small>จัดการคอนโดมิเนียม</small></span></a>';
+  return '<a class="brand" href="#/home"><span class="brand-mark">' + icon('brand') + '</span><span><strong>Salaya Two Resident</strong><small>จัดการคอนโดมิเนียม</small></span></a>';
 }
 function button(label, callback, { primary = false, symbol = '', style = '' } = {}) {
   const index = callbacks.push(callback) - 1;

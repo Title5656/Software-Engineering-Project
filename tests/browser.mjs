@@ -50,8 +50,9 @@ try {
 
     const response = await page.goto(url);
     assert.equal(response.status(),200);
-    assert.match(await page.title(), /^Salaya Two resident/);
-    await has('Salaya Two resident',page.locator('.landing-top'));
+    assert.equal(await page.title(), 'Salaya Two Resident');
+    assert.equal(await page.locator('meta[property="og:title"]').getAttribute('content'), 'Salaya Two Resident');
+    await has('Salaya Two Resident',page.locator('.landing-top'));
     await has('เลือกบทบาทเพื่อเริ่มเดโม');
     if (width === 1440) {
       const legacy = seed();

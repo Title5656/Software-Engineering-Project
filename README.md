@@ -1,4 +1,4 @@
-# Salaya Two resident · เว็บต้นแบบระบบบริหารจัดการห้องชุดและผู้เช่า
+# Salaya Two Resident · เว็บต้นแบบระบบบริหารจัดการห้องชุดและผู้เช่า
 
 [เปิดเว็บต้นแบบ](https://title5656.github.io/Software-Engineering-Project/)
 
