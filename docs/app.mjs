@@ -8,7 +8,11 @@ const dialog = document.querySelector('#dialog');
 const toast = document.querySelector('#toast');
 const dataKey = 'baanruam-demo-v1';
 const sessionKey = 'baanruam-account';
-const demos = [['office','admin','จัดการงานและติดตามภาพรวมอาคาร','brand'],['resident','resident','ดูบิล แจ้งซ่อม และจองส่วนกลาง','home'],['tech','tech','รับงานและบันทึกผลซ่อม','tool']];
+const demos = [
+  ['resident','resident','ดูบิล แจ้งซ่อม และจองส่วนกลาง','home'],
+  ['office','admin','จัดการห้องชุด ผู้พักอาศัย และค่าใช้จ่าย','brand'],
+  ['tech','tech','ดูงานที่ได้รับและบันทึกผลซ่อม','tool'],
+];
 
 const routes = {
   home: ['ภาพรวม','grid'], units: ['ห้องชุด','home'], residents: ['ผู้พักอาศัย','users'], leases: ['สัญญาเช่า','file'],
@@ -72,10 +76,14 @@ function activeUser() {
 function brand() {
   return '<a class="brand" href="#/home"><span class="brand-mark">' + icon('brand') + '</span><span><strong>Salaya Two Resident</strong><small>จัดการคอนโดมิเนียม</small></span></a>';
 }
-function button(label, callback, { primary = false, symbol = '', style = '' } = {}) {
+function button(label, callback, { primary = false, symbol = '', style = '', description = '' } = {}) {
   const index = callbacks.push(callback) - 1;
-  return '<button type="button" class="button ' + (primary ? 'primary ' : '') + style + '" data-callback="' + index + '">' +
-    (symbol ? icon(symbol) : '') + esc(label) + '</button>';
+  const descriptionId = 'button-description-' + index;
+  const accessibility = description ? ' aria-label="' + esc(label) + '" aria-describedby="' + descriptionId + '"' : '';
+  const text = description ? '<span><strong>' + esc(label) + '</strong><small id="' + descriptionId + '">' +
+    esc(description) + '</small></span>' + icon('arrow') : esc(label);
+  return '<button type="button" class="button ' + (primary ? 'primary ' : '') + style + '" data-callback="' + index + '"' +
+    accessibility + '>' + (symbol ? icon(symbol) : '') + text + '</button>';
 }
 function showDialog(title, content) {
   dialog.innerHTML = '<div class="dialog-head"><h2 id="dialog-title">' + esc(title) +
@@ -145,7 +153,7 @@ function demoButtons() {
       go('home');
       signIn(username,demoPassword);
     } catch(error) { tell(error.message); }
-  },{symbol,style:'demo-choice'}) + '<p>' + description + '</p>').map(card => '<div class="role-card">' + card + '</div>').join('');
+  },{symbol,description,style:'demo-choice'})).join('');
 }
 function authDialog(register) {
   const entry = [
@@ -179,13 +187,18 @@ function resetDialog() {
 
 function landing() {
   return '<div class="landing"><header class="landing-top">' + brand() +
-    button('เข้าสู่ระบบ',() => authDialog(false),{symbol:'log'}) + '</header>' +
-    '<main class="landing-main" id="main"><div class="landing-copy"><p class="eyebrow">เว็บต้นแบบสำหรับสาธิต</p>' +
-    '<h1>จัดการคอนโด<br>ในที่เดียว<span>.</span></h1><p class="landing-intro">ทดลองแจ้งซ่อม ดูสัญญา จัดการค่าใช้จ่าย และติดตามงานอาคารจากมุมของแต่ละบทบาท</p>' +
-    '<h2>เลือกบทบาทเพื่อเริ่มเดโม</h2><div class="role-grid">' + demoButtons() + '</div>' +
+    button('เข้าสู่ระบบ',() => authDialog(false),{primary:true,symbol:'log'}) + '</header>' +
+    '<main class="landing-main" id="main"><div class="landing-copy">' +
+    '<h1>Unit and Tenant <span>Management System</span></h1><p class="landing-intro">ดูสัญญา แจ้งซ่อม และติดตามงานอาคาร</p>' +
+    '<h2>เลือกบทบาทเพื่อเริ่มเดโม</h2><div class="role-list">' + demoButtons() + '</div>' +
     '<div class="landing-actions">' + button('ลงทะเบียนผู้พักอาศัย',() => authDialog(true),{symbol:'plus',style:'quiet'}) +
     button('คืนค่าข้อมูลเดโม',resetDialog,{style:'quiet'}) + '</div></div>' +
-    '<div class="landing-art" aria-hidden="true"><div class="architecture"><i></i><i></i><i></i><i></i></div></div></main></div>';
+    '<figure class="landing-photo"><img src="./assets/condo-650.webp" ' +
+    'srcset="./assets/condo-650.webp 650w, ./assets/condo-1280.webp 1280w" ' +
+    'sizes="(max-width: 760px) calc(100vw - 40px), (max-width: 1440px) 44vw, 620px" ' +
+    'width="650" height="975" fetchpriority="high" alt="อาคารพักอาศัยคอนกรีตสีเทา มองจากมุมเงย">' +
+    '<figcaption><span>ภาพประกอบ</span><a href="https://unsplash.com/photos/gray-concrete-building-during-daytime-nrqVT4Fx5Xo">' +
+    'Jorge Percival / Unsplash</a></figcaption></figure></main></div>';
 }
 
 function accessible(role, route) {
@@ -195,8 +208,8 @@ function heading(title, subtitle) {
   return '<div class="page-heading"><div><h1>' + esc(title) + '</h1><p>' + esc(subtitle) + '</p></div><span class="today">' +
     icon('calendar') + dateLabel(day()) + '</span></div>';
 }
-function tile(symbol,label,value,sub,route,tone) {
-  return '<a href="#/' + route + '" class="metric panel"><div class="metric-top"><span class="feature-icon ' + tone + '">' + icon(symbol) +
+function tile(symbol,label,value,sub,route) {
+  return '<a href="#/' + route + '" class="metric panel"><div class="metric-top"><span class="feature-icon">' + icon(symbol) +
     '</span>' + icon('arrow') + '</div><span>' + esc(label) + '</span><strong>' + esc(value) + '</strong><small>' + esc(sub) + '</small></a>';
 }
 function quick(route,text,symbol) {
@@ -221,22 +234,22 @@ function overview(user,data) {
   let tiles;
   let shortcuts;
   if (admin) {
-    tiles = [tile('home','ห้องว่าง',emptyRooms,'มีผู้พัก ' + occupiedRooms + ' ห้อง','units','green'),
-      tile('file','สัญญาใกล้หมดอายุ',endSoon.length,'ภายใน 30 วัน','leases','blue'),
-      tile('wallet','ยอดค้างชำระ',cash(due),'รวมทุกใบแจ้งหนี้ในช่วงวันที่','finance','amber'),
-      tile('tool','งานซ่อมที่ยังเปิด',openJobs.length,'กำลังดำเนินการ ' + working + ' งาน','repairs','green')];
+    tiles = [tile('home','ห้องว่าง',emptyRooms,'มีผู้พัก ' + occupiedRooms + ' ห้อง','units'),
+      tile('file','สัญญาใกล้หมดอายุ',endSoon.length,'ภายใน 30 วัน','leases'),
+      tile('wallet','ยอดค้างชำระ',cash(due),'รวมทุกใบแจ้งหนี้ในช่วงวันที่','finance'),
+      tile('tool','งานซ่อมที่ยังเปิด',openJobs.length,'กำลังดำเนินการ ' + working + ' งาน','repairs')];
     shortcuts = [quick('residents','ทะเบียนผู้พัก','users'),quick('finance','ออกใบแจ้งหนี้','wallet'),quick('reception','บันทึกรับพัสดุ','parcel')];
   } else if (tech) {
-    tiles = [tile('tool','งานที่ยังเปิด',openJobs.length,'รายการที่ได้รับมอบหมาย','repairs','green'),
-      tile('activity','กำลังดำเนินการ',working,'งานที่เริ่มซ่อมแล้ว','repairs','amber'),
-      tile('check','เสร็จแล้ว',done,'งานที่บันทึกผลแล้ว','repairs','blue')];
+    tiles = [tile('tool','งานที่ยังเปิด',openJobs.length,'รายการที่ได้รับมอบหมาย','repairs'),
+      tile('activity','กำลังดำเนินการ',working,'งานที่เริ่มซ่อมแล้ว','repairs'),
+      tile('check','เสร็จแล้ว',done,'งานที่บันทึกผลแล้ว','repairs')];
     shortcuts = [quick('repairs','ดูงานที่ได้รับมอบหมาย','tool'),quick('profile','แก้ไขข้อมูลส่วนตัว','settings')];
   } else {
     const current = data.leases.find(l => l.status === 'active');
-    tiles = [tile('wallet','ยอดค้างชำระ',cash(due),'ตรวจสอบใบแจ้งหนี้','finance','amber'),
-      tile('tool','งานซ่อมที่ยังเปิด',openJobs.length,'ติดตามสถานะล่าสุด','repairs','green'),
-      tile('parcel','พัสดุรอรับ',waiting.length,'รายการของห้องคุณ','reception','blue'),
-      tile('file','วันสิ้นสุดสัญญา',current ? dateLabel(current.end) : '—','ดูรายละเอียดสัญญา','leases','green')];
+    tiles = [tile('wallet','ยอดค้างชำระ',cash(due),'ตรวจสอบใบแจ้งหนี้','finance'),
+      tile('tool','งานซ่อมที่ยังเปิด',openJobs.length,'ติดตามสถานะล่าสุด','repairs'),
+      tile('parcel','พัสดุรอรับ',waiting.length,'รายการของห้องคุณ','reception'),
+      tile('file','วันสิ้นสุดสัญญา',current ? dateLabel(current.end) : '—','ดูรายละเอียดสัญญา','leases')];
     shortcuts = [quick('repairs','แจ้งซ่อม','tool'),quick('booking','จองส่วนกลาง','calendar'),quick('finance','ดูใบแจ้งหนี้','wallet')];
   }
   const statusLegend = [['new','รับแจ้ง'],['assigned','มอบหมาย'],['working','กำลังซ่อม'],['done','เสร็จแล้ว']];
@@ -269,7 +282,7 @@ function shell(user,route,content) {
     button('คืนค่าข้อมูลเดโม',resetDialog,{style:'quiet'}) + '</div></aside><div class="work"><header class="topbar">' +
     '<div class="top-left"><button class="icon-button mobile-menu" type="button" data-toggle aria-label="เมนู" aria-expanded="' + drawerOpen + '">' +
     icon('menu') + '</button><span>พื้นที่ทำงาน</span>' + icon('chevron') + '<strong>' + esc(routes[route][0]) + '</strong></div><div class="top-right">' +
-    button('สลับบทบาท',() => showDialog('สลับบทบาทเดโม','<div class="dialog-form"><div class="role-grid">' + demoButtons() +
+    button('สลับบทบาท',() => showDialog('สลับบทบาทเดโม','<div class="dialog-form"><div class="role-list">' + demoButtons() +
       '</div>' + button('เข้าสู่ระบบด้วยบัญชีอื่น',() => authDialog(false),{symbol:'log'}) +
       button('ออกจากระบบ',() => { setSession(''); dialog.close(); go('home'); },{style:'quiet'}) + '</div>'),{symbol:'switch'}) +
     '<a class="identity" href="#/profile"><span class="avatar">' + esc(displayName(db,user).slice(0,1)) + '</span><span><strong>' +

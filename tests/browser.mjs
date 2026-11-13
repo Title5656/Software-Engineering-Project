@@ -9,11 +9,17 @@ const require = createRequire(import.meta.url);
 const { chromium } = require(process.env.DEMO_PLAYWRIGHT || 'playwright');
 const prefix = '/Software-Engineering-Project/';
 const files = new Map([['','index.html'],['styles.css','styles.css'],...['app','model','ui','office','operations'].map(name => [name + '.mjs',name + '.mjs'])]);
+for (const size of [650,1280]) {
+  const path = `assets/condo-${size}.webp`;
+  files.set(path,path);
+}
 const server = createServer(async (req,res) => {
   const path = files.get(req.url.startsWith(prefix) ? req.url.slice(prefix.length) : null);
   if (!path) return res.writeHead(404).end();
-  const mime = path.endsWith('.mjs') ? 'text/javascript' : path.endsWith('.css') ? 'text/css' : 'text/html';
-  res.writeHead(200,{'Content-Type':mime + '; charset=utf-8'}).end(await readFile(new URL('../docs/' + path,import.meta.url)));
+  const types = { html:'text/html', css:'text/css', mjs:'text/javascript', webp:'image/webp' };
+  const mime = types[path.split('.').at(-1)];
+  const contentType = mime.startsWith('text/') ? mime + '; charset=utf-8' : mime;
+  res.writeHead(200,{'Content-Type':contentType}).end(await readFile(new URL('../docs/' + path,import.meta.url)));
 });
 
 await new Promise(resolve => server.listen(0,'127.0.0.1',resolve));
@@ -54,6 +60,9 @@ try {
     assert.equal(await page.locator('meta[property="og:title"]').getAttribute('content'), 'Salaya Two Resident');
     await has('Salaya Two Resident',page.locator('.landing-top'));
     await has('เลือกบทบาทเพื่อเริ่มเดโม');
+    const photo = page.getByRole('img',{name:'อาคารพักอาศัยคอนกรีตสีเทา มองจากมุมเงย'});
+    assert.ok(await photo.isVisible(),'the landing photo should be visible');
+    assert.equal(await photo.evaluate(img => img.decode().then(() => img.naturalWidth > 0)),true,'the local photo should load');
     if (width === 1440) {
       const legacy = seed();
       legacy.version = 1;
@@ -62,7 +71,10 @@ try {
       await page.evaluate(data => localStorage.setItem('baanruam-demo-v1',JSON.stringify(data)),legacy);
       await page.reload();
     }
-    if (width === 1440 && process.env.DEMO_SCREENSHOT) await page.screenshot({path:process.env.DEMO_SCREENSHOT + '-landing.png'});
+    if (process.env.DEMO_SCREENSHOT) {
+      const suffix = width === 1440 ? '-landing.png' : '-mobile.png';
+      await page.screenshot({path:process.env.DEMO_SCREENSHOT + suffix,fullPage:true});
+    }
     await click('เข้าสู่ระบบ');
     await fill('username','resident');
     await fill('password','bad-password');
