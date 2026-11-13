@@ -56,8 +56,8 @@ try {
 
     const response = await page.goto(url);
     assert.equal(response.status(),200);
-    assert.equal(await page.title(), 'Salaya Two Resident');
-    assert.equal(await page.locator('meta[property="og:title"]').getAttribute('content'), 'Salaya Two Resident');
+    assert.equal(await page.title(), 'Unit and Tenant Management System');
+    assert.equal(await page.locator('meta[property="og:title"]').getAttribute('content'), 'Unit and Tenant Management System');
     await has('Salaya Two Resident',page.locator('.landing-top'));
     await has('เลือกบทบาทเพื่อเริ่มเดโม');
     const photo = page.getByRole('img',{name:'อาคารพักอาศัยคอนกรีตสีเทา มองจากมุมเงย'});
