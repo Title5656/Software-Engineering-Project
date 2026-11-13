@@ -43,8 +43,9 @@ button, a, input, select, textarea { -webkit-tap-highlight-color:transparent }
 .brand strong { display:block; font-size:1.2rem; letter-spacing:-.03em }
 .brand small { display:block; margin-top:3px; font-size:.8rem; color:var(--muted) }
 .landing { --gutter:clamp(20px,5vw,80px); min-height:100dvh; background:var(--white) }
-.landing-top,.landing-main { width:min(1280px,calc(100% - var(--gutter) * 2)); margin-inline:auto }
-.landing-top { display:flex; justify-content:space-between; align-items:center; gap:12px; min-height:88px; border-bottom:1px solid var(--line) }
+.landing-main { width:min(1280px,calc(100% - var(--gutter) * 2)); margin-inline:auto }
+.landing-top,.topbar { position:sticky; top:0; z-index:3; background:var(--white) }
+.landing-top { padding-inline:max(var(--gutter),(100% - 1280px) / 2); display:flex; justify-content:space-between; align-items:center; gap:12px; min-height:88px; border-bottom:1px solid var(--line) }
 .landing-copy .button { min-height:44px; padding-inline:18px }
 .landing-main { display:grid; grid-template-columns:minmax(0,.88fr) minmax(0,1fr); align-items:center; gap:clamp(30px,7vw,112px); padding:clamp(32px,4vw,60px) 0 42px }
 .landing-copy { min-width:0 }
@@ -69,7 +70,7 @@ button, a, input, select, textarea { -webkit-tap-highlight-color:transparent }
 .sidebar-foot .quiet { color:var(--muted); font-size:.84rem; justify-content:flex-start; width:100% }
 .sidebar-foot .quiet:hover { color:var(--ink) }
 .work { min-width:0 }
-.topbar { height:70px; background:#fff; border-bottom:1px solid var(--line); display:flex; justify-content:space-between; align-items:center; gap:12px; padding:0 clamp(18px,3vw,40px) }
+.topbar { height:70px; border-bottom:1px solid var(--line); display:flex; justify-content:space-between; align-items:center; gap:12px; padding:0 clamp(18px,3vw,40px) }
 .top-left,.top-right,.identity { display:flex; align-items:center; gap:10px; min-width:0 }
 .top-left { color:var(--muted); font-size:.88rem }
 .top-left .icon { width:15px; height:15px }
