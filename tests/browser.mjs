@@ -14,8 +14,7 @@ for (const size of [650,1280]) {
   files.set(path,path);
 }
 const server = createServer(async (req,res) => {
-  const pathname = new URL(req.url, 'http://127.0.0.1').pathname;
-  const path = files.get(pathname.startsWith(prefix) ? pathname.slice(prefix.length) : null);
+  const path = files.get(req.url.startsWith(prefix) ? req.url.slice(prefix.length) : null);
   if (!path) return res.writeHead(404).end();
   const types = { html:'text/html', css:'text/css', mjs:'text/javascript', webp:'image/webp' };
   const mime = types[path.split('.').at(-1)];

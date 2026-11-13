@@ -1,6 +1,6 @@
 # Unit and Tenant Management System
 
-[เปิดเว็บต้นแบบบน GitHub Pages](https://title5656.github.io/Software-Engineering-Project/#/home)
+[เปิดเว็บต้นแบบบน GitHub Pages](https://title5656.github.io/Software-Engineering-Project/?v=dea606a)
 
 โครงการนี้เป็นระบบบริหารจัดการห้องชุดและผู้เช่าในคอนโดมิเนียม เว็บต้นแบบ **Salaya Two Resident** ใช้ข้อมูลจำลองให้ทดลองขั้นตอนตาม Use Case ของโครงการ ตั้งแต่จัดการห้องชุด ผู้พัก และสัญญาเช่า ไปจนถึงแจ้งซ่อม ชำระค่าใช้จ่าย จองส่วนกลาง รับพัสดุ และอ่านประกาศ
 
