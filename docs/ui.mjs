@@ -2,33 +2,87 @@ export const esc = (value = '') => String(value ?? '').replace(/[&<>"']/g, char 
   '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
 }[char]));
 
-const paths = {
-  brand: 'M3 21V8l9-5 9 5v13M7 21v-9m5 9V8m5 13v-9M2 21h20',
-  grid: 'M3 3h7v7H3z M14 3h7v7h-7z M3 14h7v7H3z M14 14h7v7h-7z',
-  home: 'M3 11l9-8 9 8v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1z M9 21v-7h6v7',
-  users: 'M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2m20 0v-2a4 4 0 0 0-3-3.87M13 7a4 4 0 1 1-8 0 4 4 0 0 1 8 0Zm3-4a4 4 0 0 1 0 8',
-  file: 'M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z M14 2v6h6M8 13h8m-8 4h8',
-  tool: 'M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.8-3.8a6 6 0 0 1-7.8 7.8l-7 7a2.1 2.1 0 0 1-3-3l7-7a6 6 0 0 1 7.8-7.8z',
-  wallet: 'M20 8V6a2 2 0 0 0-2-2H5a2 2 0 0 0 0 4h15a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6m19 6h-5a2 2 0 0 0 0 4h5',
-  parcel: 'm3 7 9-5 9 5v10l-9 5-9-5z m0 0 9 5 9-5m-9 5v10m-4-18 9 5',
-  bell: 'M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9m-8 12a2 2 0 0 0 4 0',
-  chart: 'M3 3v18h18M8 16v-4m5 4V7m5 9v-7',
-  calendar: 'M8 2v4m8-4v4M3 9h18M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z',
-  activity: 'M2 12h4l3-8 5 16 3-8h5',
-  droplet: 'M12 2c3 5 7 8.3 7 13a7 7 0 0 1-14 0c0-4.7 4-8 7-13z',
-  arrow: 'M5 12h14m-6-6 6 6-6 6',
-  chevron: 'm9 18 6-6-6-6',
-  plus: 'M12 5v14M5 12h14',
-  check: 'm5 12 4 4L19 6',
-  close: 'm6 6 12 12M6 18 18 6',
-  menu: 'M4 6h16M4 12h16M4 18h16',
-  settings: 'M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8ZM9 3h6l1 3 3 1 2 5-2 5-3 1-1 3H9l-1-3-3-1-2-5 2-5 3-1z',
-  switch: 'M4 7h15m-4-4 4 4-4 4m5 6H5m4-4-4 4 4 4',
-  log: 'M12 5H4v14h8m-2-7h11m-4-4 4 4-4 4',
-  info: 'M12 11v6m0-10h.01M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20z',
-  key: 'M21 3l-8 8m5-5 3 3m-6 0 3 3M14 15a5 5 0 1 1-10 0 5 5 0 0 1 10 0z',
+/*
+ISC License
+
+Copyright (c) 2026 Lucide Icons and Contributors
+
+Permission to use, copy, modify, and/or distribute this software for any
+purpose with or without fee is hereby granted, provided that the above
+copyright notice and this permission notice appear in all copies.
+
+THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+*/
+const iconShapes = {
+  grid: '<rect width="7" height="9" x="3" y="3" rx="1"/>' +
+    '<rect width="7" height="5" x="14" y="3" rx="1"/>' +
+    '<rect width="7" height="9" x="14" y="12" rx="1"/>' +
+    '<rect width="7" height="5" x="3" y="16" rx="1"/>', // layout-dashboard
+  home: '<path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"/>' +
+    '<path d="M3 10a2 2 0 0 1 .709-1.528l7-6a2 2 0 0 1 2.582 0l7 6A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>', // house
+  users: '<path d="M18 21a8 8 0 0 0-16 0"/>' +
+    '<circle cx="10" cy="8" r="5"/>' +
+    '<path d="M22 20c0-3.37-2-6.5-4-8a5 5 0 0 0-.45-8.3"/>', // users-round
+  file: '<path d="M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z"/>' +
+    '<path d="M14 2v5a1 1 0 0 0 1 1h5"/>' +
+    '<path d="M10 9H8"/>' +
+    '<path d="M16 13H8"/>' +
+    '<path d="M16 17H8"/>', // file-text
+  tool: '<path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.106-3.105c.32-.322.863-.22.983.218a6 6 0 0 1-8.259 7.057l-7.91 7.91a1 1 0 0 1-2.999-3l7.91-7.91a6 6 0 0 1 7.057-8.259c.438.12.54.662.219.984z"/>', // wrench
+  wallet: '<path d="M19 7V4a1 1 0 0 0-1-1H5a2 2 0 0 0 0 4h15a1 1 0 0 1 1 1v4h-3a2 2 0 0 0 0 4h3a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1"/>' +
+    '<path d="M3 5v14a2 2 0 0 0 2 2h15a1 1 0 0 0 1-1v-4"/>', // wallet
+  parcel: '<path d="M11 21.73a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73z"/>' +
+    '<path d="M12 22V12"/>' +
+    '<polyline points="3.29 7 12 12 20.71 7"/>' +
+    '<path d="m7.5 4.27 9 5.15"/>', // package
+  bell: '<path d="M10.268 21a2 2 0 0 0 3.464 0"/>' +
+    '<path d="M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326"/>', // bell
+  chart: '<path d="M3 3v16a2 2 0 0 0 2 2h16"/>' +
+    '<path d="M18 17V9"/>' +
+    '<path d="M13 17V5"/>' +
+    '<path d="M8 17v-3"/>', // chart-column
+  calendar: '<path d="M8 2v3"/>' +
+    '<path d="M16 2v3"/>' +
+    '<rect x="3" y="3" width="18" height="18" rx="2"/>' +
+    '<path d="M3 9h18"/>' +
+    '<path d="M8 13h.01"/>' +
+    '<path d="M12 13h.01"/>' +
+    '<path d="M16 13h.01"/>' +
+    '<path d="M8 17h.01"/>' +
+    '<path d="M12 17h.01"/>' +
+    '<path d="M16 17h.01"/>', // calendar-days
+  activity: '<path d="M17.596 12.768a2 2 0 1 0 2.829-2.829l-1.768-1.767a2 2 0 0 0 2.828-2.829l-2.828-2.828a2 2 0 0 0-2.829 2.828l-1.767-1.768a2 2 0 1 0-2.829 2.829z"/>' +
+    '<path d="m2.5 21.5 1.4-1.4"/>' +
+    '<path d="m20.1 3.9 1.4-1.4"/>' +
+    '<path d="M5.343 21.485a2 2 0 1 0 2.829-2.828l1.767 1.768a2 2 0 1 0 2.829-2.829l-6.364-6.364a2 2 0 1 0-2.829 2.829l1.768 1.767a2 2 0 0 0-2.828 2.829z"/>' +
+    '<path d="m9.6 14.4 4.8-4.8"/>', // dumbbell
+  droplet: '<path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-4-6.5c-.5 2.5-2 4.9-4 6.5C6 11.1 5 13 5 15a7 7 0 0 0 7 7z"/>', // droplet
+  settings: '<path d="M9.671 4.136a2.34 2.34 0 0 1 4.659 0 2.34 2.34 0 0 0 3.319 1.915 2.34 2.34 0 0 1 2.33 4.033 2.34 2.34 0 0 0 0 3.831 2.34 2.34 0 0 1-2.33 4.033 2.34 2.34 0 0 0-3.319 1.915 2.34 2.34 0 0 1-4.659 0 2.34 2.34 0 0 0-3.32-1.915 2.34 2.34 0 0 1-2.33-4.033 2.34 2.34 0 0 0 0-3.831A2.34 2.34 0 0 1 6.35 6.051a2.34 2.34 0 0 0 3.319-1.915"/>' +
+    '<circle cx="12" cy="12" r="3"/>', // settings
+  key: '<path d="M2.586 17.414A2 2 0 0 0 2 18.828V21a1 1 0 0 0 1 1h3a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h1a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h.172a2 2 0 0 0 1.414-.586l.814-.814a6.5 6.5 0 1 0-4-4z"/>' +
+    '<circle cx="16.5" cy="7.5" r=".5" fill="currentColor"/>', // key-round
+  brand: '<path d="M3 21V8l9-5 9 5v13M7 21v-9m5 9V8m5 13v-9M2 21h20"/>',
+  arrow: '<path d="M5 12h14m-6-6 6 6-6 6"/>',
+  chevron: '<path d="m9 18 6-6-6-6"/>',
+  plus: '<path d="M12 5v14M5 12h14"/>',
+  check: '<path d="m5 12 4 4L19 6"/>',
+  close: '<path d="m6 6 12 12M6 18 18 6"/>',
+  menu: '<path d="M4 6h16M4 12h16M4 18h16"/>',
+  switch: '<path d="M4 7h15m-4-4 4 4-4 4m5 6H5m4-4-4 4 4 4"/>',
+  log: '<path d="M12 5H4v14h8m-2-7h11m-4-4 4 4-4 4"/>',
+  info: '<path d="M12 11v6m0-10h.01M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20z"/>',
 };
-export const icon = name => '<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="' + (paths[name] || paths.info) + '"/></svg>';
+
+export const icon = name => {
+  const shape = Object.hasOwn(iconShapes, name) ? iconShapes[name] : iconShapes.info;
+  return '<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + shape + '</svg>';
+};
 
 export const labels = {
   active: 'ใช้งาน', disabled: 'ระงับ', ended: 'สิ้นสุด', open: 'เปิดใช้งาน', closed: 'ปิดใช้งาน',
