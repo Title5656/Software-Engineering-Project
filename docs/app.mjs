@@ -8,11 +8,6 @@ const dialog = document.querySelector('#dialog');
 const toast = document.querySelector('#toast');
 const dataKey = 'baanruam-demo-v1';
 const sessionKey = 'baanruam-account';
-const demos = [
-  ['resident','resident','ดูบิล แจ้งซ่อม และจองส่วนกลาง','home'],
-  ['office','admin','จัดการห้องชุด ผู้พักอาศัย และค่าใช้จ่าย','brand'],
-  ['tech','tech','ดูงานที่ได้รับและบันทึกผลซ่อม','tool'],
-];
 
 const routes = {
   home: ['ภาพรวม','grid'], units: ['ห้องชุด','home'], residents: ['ผู้พักอาศัย','users'], leases: ['สัญญาเช่า','file'],
@@ -76,14 +71,10 @@ function activeUser() {
 function brand() {
   return '<a class="brand" href="#/home"><span class="brand-mark">' + icon('brand') + '</span><span><strong>Salaya Two Resident</strong><small>จัดการคอนโดมิเนียม</small></span></a>';
 }
-function button(label, callback, { primary = false, symbol = '', style = '', description = '' } = {}) {
+function button(label, callback, { primary = false, symbol = '', style = '' } = {}) {
   const index = callbacks.push(callback) - 1;
-  const descriptionId = 'button-description-' + index;
-  const accessibility = description ? ' aria-label="' + esc(label) + '" aria-describedby="' + descriptionId + '"' : '';
-  const text = description ? '<span><strong>' + esc(label) + '</strong><small id="' + descriptionId + '">' +
-    esc(description) + '</small></span>' + icon('arrow') : esc(label);
-  return '<button type="button" class="button ' + (primary ? 'primary ' : '') + style + '" data-callback="' + index + '"' +
-    accessibility + '>' + (symbol ? icon(symbol) : '') + text + '</button>';
+  return '<button type="button" class="button ' + (primary ? 'primary ' : '') + style + '" data-callback="' + index + '">' +
+    (symbol ? icon(symbol) : '') + esc(label) + '</button>';
 }
 function showDialog(title, content) {
   dialog.innerHTML = '<div class="dialog-head"><h2 id="dialog-title">' + esc(title) +
@@ -94,9 +85,9 @@ function values(form) {
   return Object.fromEntries(new FormData(form));
 }
 function submitForm(title, fields, submit, settings = {}) {
-  const { submitLabel = 'บันทึก', summary = '', check } = settings;
+  const { submitLabel = 'บันทึก', summary = '', check, extraAction = '' } = settings;
   showDialog(title,'<form class="dialog-form">' + (summary ? '<p>' + esc(summary) + '</p>' : '') + fields.join('') +
-    '<p class="form-message" role="status"></p><div class="dialog-foot"><button class="button quiet" type="button" data-close>ยกเลิก</button>' +
+    '<p class="form-message" role="status"></p>' + extraAction + '<div class="dialog-foot"><button class="button quiet" type="button" data-close>ยกเลิก</button>' +
     (check ? '<button class="button" type="button" data-check>ตรวจช่วงว่าง</button>' : '') +
     '<button class="button primary" type="submit">' + esc(submitLabel) + '</button></div></form>');
   const form = dialog.querySelector('form');
@@ -138,26 +129,17 @@ const detail = (label,title,html) => button(label,() => showDialog(title,'<div c
 
 function signIn(username, password) {
   const user = authenticate(db,username,password);
+  const switching = Boolean(activeUser());
   setSession(user.id);
   drawerOpen = false;
   if (dialog.open) dialog.close();
   const target = location.hash.slice(2).split('/')[0];
-  if (target && accessible(user.role,target)) render();
+  if (!switching && target && accessible(user.role,target)) render();
   else go('home');
 }
-function demoButtons() {
-  return demos.map(([username,role,description,symbol]) => button(roles[role],() => {
-    try {
-      const user = db.users.find(u => u.username === username && u.role === role && u.status === 'active');
-      if (!user) throw new Error('บัญชีเดโมนี้ถูกเปลี่ยนบทบาทหรือระงับ ใช้ปุ่มคืนค่าข้อมูลเดโมเพื่อเรียกคืน');
-      go('home');
-      signIn(username,demoPassword);
-    } catch(error) { tell(error.message); }
-  },{symbol,description,style:'demo-choice'})).join('');
-}
-function authDialog(register) {
+function authDialog(register = false, username = '', message = '') {
   const entry = [
-    field('username','ชื่อผู้ใช้',{ hint:register ? 'ใช้ตัวอักษรอังกฤษหรือตัวเลขอย่างน้อย 3 ตัว' : '' }),
+    field('username','ชื่อผู้ใช้',{ value:username, hint:register ? 'ใช้ตัวอักษรอังกฤษหรือตัวเลขอย่างน้อย 3 ตัว' : '' }),
     field('password','รหัสผ่าน',{ type:'password' }),
   ];
   if (register) {
@@ -167,12 +149,18 @@ function authDialog(register) {
   submitForm(register ? 'ลงทะเบียนผู้พักอาศัย' : 'เข้าสู่ระบบ',entry,form => {
     if (register) {
       change(db,'','register',form);
-      if (!persist()) tell('บัญชีตัวอย่างจะใช้ได้ในแท็บนี้');
+      const saved = persist();
+      authDialog(false,form.username.trim(),'ลงทะเบียนสำเร็จ กรอกรหัสผ่านเพื่อเข้าสู่ระบบ' + (saved ? '' : ' บัญชีนี้ใช้ได้ในแท็บนี้'));
+      return;
     }
     signIn(form.username,form.password);
   }, { submitLabel:register ? 'สร้างบัญชีเดโม' : 'เข้าสู่ระบบ',
+    extraAction:activeUser() ? '' : register
+      ? button('กลับไปเข้าสู่ระบบ',() => authDialog(),{style:'quiet'})
+      : button('ลงทะเบียนผู้พักอาศัย',() => authDialog(true),{style:'quiet'}),
     summary:register ? ['ทะเบียนตัวอย่างสำหรับลงทะเบียน', registrationExample.name, registrationExample.phone, registrationExample.room].join(' · ') :
-      'บัญชีเดโม office, resident, resident2, tech และ tech2 ใช้รหัสผ่าน demo123' });
+      (message ? message + ' ' : '') + 'บัญชีเดโม office, resident, resident2, tech และ tech2 ใช้รหัสผ่าน ' + demoPassword });
+  dialog.querySelector(username ? '[name="password"]' : '[name="username"]').focus();
 }
 function resetDialog() {
   submitForm('คืนค่าข้อมูลเดโม',[],() => {
@@ -186,13 +174,10 @@ function resetDialog() {
 }
 
 function landing() {
-  return '<div class="landing"><header class="landing-top">' + brand() +
-    button('เข้าสู่ระบบ',() => authDialog(false),{primary:true,symbol:'log'}) + '</header>' +
+  return '<div class="landing"><header class="landing-top">' + brand() + '</header>' +
     '<main class="landing-main" id="main"><div class="landing-copy">' +
     '<h1>Unit and Tenant <span>Management System</span></h1><p class="landing-intro">ดูสัญญา แจ้งซ่อม และติดตามงานอาคาร</p>' +
-    '<h2>เลือกบทบาทเพื่อเริ่มเดโม</h2><div class="role-list">' + demoButtons() + '</div>' +
-    '<div class="landing-actions">' + button('ลงทะเบียนผู้พักอาศัย',() => authDialog(true),{symbol:'plus',style:'quiet'}) +
-    button('คืนค่าข้อมูลเดโม',resetDialog,{style:'quiet'}) + '</div></div>' +
+    button('เข้าสู่ระบบ',() => authDialog(),{primary:true,symbol:'log'}) + '</div>' +
     '<figure class="landing-photo"><img src="./assets/condo-650.webp" ' +
     'srcset="./assets/condo-650.webp 650w, ./assets/condo-1280.webp 1280w" ' +
     'sizes="(max-width: 760px) calc(100vw - 40px), (max-width: 1440px) 44vw, 620px" ' +
@@ -282,8 +267,8 @@ function shell(user,route,content) {
     button('คืนค่าข้อมูลเดโม',resetDialog,{style:'quiet'}) + '</div></aside><div class="work"><header class="topbar">' +
     '<div class="top-left"><button class="icon-button mobile-menu" type="button" data-toggle aria-label="เมนู" aria-expanded="' + drawerOpen + '">' +
     icon('menu') + '</button><span>พื้นที่ทำงาน</span>' + icon('chevron') + '<strong>' + esc(routes[route][0]) + '</strong></div><div class="top-right">' +
-    button('สลับบทบาท',() => showDialog('สลับบทบาทเดโม','<div class="dialog-form"><div class="role-list">' + demoButtons() +
-      '</div>' + button('เข้าสู่ระบบด้วยบัญชีอื่น',() => authDialog(false),{symbol:'log'}) +
+    button('สลับบทบาท',() => showDialog('สลับบัญชี','<div class="dialog-form">' +
+      button('เข้าสู่ระบบด้วยบัญชีอื่น',() => authDialog(),{symbol:'log'}) +
       button('ออกจากระบบ',() => { setSession(''); dialog.close(); go('home'); },{style:'quiet'}) + '</div>'),{symbol:'switch'}) +
     '<a class="identity" href="#/profile"><span class="avatar">' + esc(displayName(db,user).slice(0,1)) + '</span><span><strong>' +
     esc(displayName(db,user)) + '</strong><small>' + roles[user.role] + '</small></span></a></div></header>' +

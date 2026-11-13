@@ -46,8 +46,13 @@ try {
       await page.waitForFunction(route => location.hash === '#/' + route,route);
     };
     const switchTo = async name => {
-      if (await role('สลับบทบาท').isVisible()) await click('สลับบทบาท');
-      await click(name);
+      if (await role('สลับบทบาท').isVisible()) {
+        await click('สลับบทบาท');
+        await submit('เข้าสู่ระบบด้วยบัญชีอื่น');
+      } else await click('เข้าสู่ระบบ');
+      await fill('username',{'ผู้พักอาศัย':'resident','นิติบุคคล':'office','ช่างซ่อม':'tech'}[name]);
+      await fill('password','demo123');
+      await submit('เข้าสู่ระบบ');
       await role('สลับบทบาท').waitFor();
     };
     const row = name => page.getByRole('row').filter({hasText:name}).first();
@@ -59,7 +64,12 @@ try {
     assert.equal(await page.title(), 'Unit and Tenant Management System');
     assert.equal(await page.locator('meta[property="og:title"]').getAttribute('content'), 'Unit and Tenant Management System');
     await has('Salaya Two Resident',page.locator('.landing-top'));
-    await has('เลือกบทบาทเพื่อเริ่มเดโม');
+    await role('เข้าสู่ระบบ').waitFor();
+    assert.deepEqual(await page.getByRole('button').allTextContents(),['เข้าสู่ระบบ']);
+    await go('accounts');
+    await role('เข้าสู่ระบบ').waitFor();
+    assert.equal(await page.locator('.shell').count(),0);
+    await go('home');
     const photo = page.getByRole('img',{name:'อาคารพักอาศัยคอนกรีตสีเทา มองจากมุมเงย'});
     assert.ok(await photo.isVisible(),'the landing photo should be visible');
     assert.equal(await photo.evaluate(img => img.decode().then(() => img.naturalWidth > 0)),true,'the local photo should load');
@@ -80,11 +90,15 @@ try {
     await fill('password','bad-password');
     await submit('เข้าสู่ระบบ');
     await has('ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง',modal);
-    await modal.getByRole('button',{name:'ยกเลิก'}).click();
-    await click('ลงทะเบียนผู้พักอาศัย');
+    assert.equal(await page.locator('.shell').count(),0);
+    await submit('ลงทะเบียนผู้พักอาศัย');
     await fill('username','new.demo'); await fill('password','demo123');
     await fill('name',registrationExample.name); await fill('phone',registrationExample.phone); await choose('unit',registrationExample.unit);
-    await submit('สร้างบัญชีเดโม'); await has('สวัสดี คุณมาร์ก');
+    await submit('สร้างบัญชีเดโม'); await has('ลงทะเบียนสำเร็จ',modal);
+    assert.equal(await page.locator('.shell').count(),0);
+    assert.equal(await field('username').inputValue(),'new.demo');
+    assert.equal(await field('password').inputValue(),'');
+    await fill('password','demo123'); await submit('เข้าสู่ระบบ'); await has('สวัสดี คุณมาร์ก');
 
     await switchTo('ผู้พักอาศัย');
     await has('สวัสดี คุณเจนเซน');
@@ -170,7 +184,7 @@ try {
     await page.locator('[name="report-start"]').fill(day(10)); await click('ใช้ช่วงวันที่'); await has('ไม่มีรายการในช่วงวันที่ที่เลือก');
     assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth),false,'page should fit viewport');
     if (width === 390) await click('เมนู');
-    await click('คืนค่าข้อมูลเดโม'); await submit('คืนค่าข้อมูล'); await has('เลือกบทบาทเพื่อเริ่มเดโม');
+    await click('คืนค่าข้อมูลเดโม'); await submit('คืนค่าข้อมูล'); await role('เข้าสู่ระบบ').waitFor();
     await switchTo('ผู้พักอาศัย'); await go('booking'); await has('ยังไม่มีรายการจอง');
     assert.deepEqual(errors,[]);
     console.log(width + 'px: lease, repair, payment happy/unhappy paths and 30-function workflow checks passed');
