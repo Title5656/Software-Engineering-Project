@@ -14,7 +14,8 @@ for (const size of [650,1280]) {
   files.set(path,path);
 }
 const server = createServer(async (req,res) => {
-  const path = files.get(req.url.startsWith(prefix) ? req.url.slice(prefix.length) : null);
+  const { pathname } = new URL(req.url,'http://127.0.0.1');
+  const path = files.get(pathname.startsWith(prefix) ? pathname.slice(prefix.length) : null);
   if (!path) return res.writeHead(404).end();
   const types = { html:'text/html', css:'text/css', mjs:'text/javascript', webp:'image/webp' };
   const mime = types[path.split('.').at(-1)];
@@ -28,12 +29,13 @@ let browser;
 try {
   browser = await chromium.launch({ executablePath:process.env.DEMO_BROWSER || undefined, headless:true });
   for (const width of [1440,390]) {
-    const page = await browser.newPage({viewport:{width,height:900}});
+    const page = await browser.newPage({viewport:{width,height:900},reducedMotion:width === 390 ? 'reduce' : 'no-preference'});
     const errors = [];
     page.on('pageerror', error => errors.push(error.message));
     const role = name => page.getByRole('button',{name,exact:true});
     const click = name => role(name).click();
     const modal = page.locator('dialog');
+    const saveStatus = page.locator('#save-status');
     const submit = (name = 'บันทึก') => modal.getByRole('button',{name,exact:true}).click();
     const field = key => modal.locator('[name="' + key + '"]');
     const fill = (key,value) => field(key).fill(value);
@@ -95,6 +97,7 @@ try {
     await fill('username','new.demo'); await fill('password','demo123');
     await fill('name',registrationExample.name); await fill('phone',registrationExample.phone); await choose('unit',registrationExample.unit);
     await submit('สร้างบัญชีเดโม'); await has('ลงทะเบียนสำเร็จ',modal);
+    assert.equal(await saveStatus.textContent({timeout:2000}),'ลงทะเบียนสำเร็จ');
     assert.equal(await page.locator('.shell').count(),0);
     assert.equal(await field('username').inputValue(),'new.demo');
     assert.equal(await field('password').inputValue(),'');
@@ -119,10 +122,26 @@ try {
     await has('รอพิจารณา');
     await switchTo('นิติบุคคล'); await go('leases'); await click('พิจารณา'); await choose('decision','rejected'); await submit();
     await switchTo('ผู้พักอาศัย'); await go('leases'); await has('ปฏิเสธ'); await has(dateLabel(day(100)),row('L1'));
-    await go('profile'); await click('แก้ไขโปรไฟล์'); await fill('name','เจนเซน ทดสอบ'); await submit(); await has('เจนเซน ทดสอบ');
+    await go('profile'); await click('แก้ไขโปรไฟล์');
+    await fill('name','เจนเซน ทดสอบ'); await fill('phone','0800000042'); await submit();
+    await has('เจนเซน ทดสอบ'); await has('0800000042');
+    const confirmation = saveStatus.getByText('บันทึกแล้ว',{exact:true});
+    await confirmation.waitFor({timeout:2000});
+    const spins = await saveStatus.evaluate(async el => {
+      const animations = el.getAnimations({subtree:true});
+      await Promise.all(animations.map(animation => animation.finished));
+      return animations.some(animation => animation.animationName === 'save-spin');
+    });
+    assert.equal(spins,width === 1440,'the confirmation should spin when motion is enabled');
+    const popup = await saveStatus.boundingBox();
+    assert.ok(Math.abs(popup.x + popup.width / 2 - width / 2) < 2,'save confirmation should be centered horizontally');
+    assert.ok(Math.abs(popup.y + popup.height / 2 - 450) < 2,'save confirmation should be centered vertically');
+    await confirmation.waitFor({state:'hidden',timeout:5000});
+    await page.reload(); await has('เจนเซน ทดสอบ'); await has('0800000042');
 
     await go('repairs'); await click('แจ้งซ่อม'); await choose('location','F1'); await fill('title','ไฟห้องออกกำลังกายดับ');
     await fill('detail','เปิดสวิตช์แล้วไฟไม่ติด'); await choose('attachment','sample'); await submit(); await has('รูปประกอบตัวอย่าง');
+    await confirmation.waitFor({timeout:2000});
     const repairRoute = await page.evaluate(() => location.hash.slice(2));
     await switchTo('นิติบุคคล'); await go(repairRoute); await click('มอบหมายงาน'); await choose('tech','T1'); await submit(); await has('มอบหมายแล้ว');
     await click('สลับบทบาท'); await submit('เข้าสู่ระบบด้วยบัญชีอื่น');
@@ -185,6 +204,7 @@ try {
     assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth),false,'page should fit viewport');
     if (width === 390) await click('เมนู');
     await click('คืนค่าข้อมูลเดโม'); await submit('คืนค่าข้อมูล'); await role('เข้าสู่ระบบ').waitFor();
+    await saveStatus.getByText('คืนค่าข้อมูลเดโมแล้ว',{exact:true}).waitFor({timeout:2000});
     await switchTo('ผู้พักอาศัย'); await go('booking'); await has('ยังไม่มีรายการจอง');
     assert.deepEqual(errors,[]);
     console.log(width + 'px: lease, repair, payment happy/unhappy paths and 30-function workflow checks passed');

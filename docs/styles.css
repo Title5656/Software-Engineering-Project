@@ -197,6 +197,73 @@ dialog::backdrop { background:var(--overlay) }
 .slip p { font-size:1.8rem; font-weight:750; margin:7px }
 #toast { position:fixed; z-index:20; bottom:15px; right:15px; max-width:min(420px,calc(100% - 30px)); padding:11px 15px; border-radius:var(--radius); background:var(--accent-dark); color:var(--white); box-shadow:0 3px 16px #232a3033; pointer-events:none; opacity:0 }
 #toast.visible { opacity:1 }
+
+#save-status {
+  position:fixed;
+  z-index:20;
+  inset:0;
+  margin:auto;
+  width:min(19rem,calc(100% - 2rem));
+  height:fit-content;
+  padding:0;
+  border:0;
+  overflow:visible;
+  background:transparent;
+  color:var(--ink);
+  pointer-events:none;
+}
+#save-status:empty { display:none }
+#save-status::backdrop { background:transparent; pointer-events:none }
+.save-card {
+  display:grid;
+  justify-items:center;
+  gap:.6rem;
+  padding:1.75rem 1.25rem;
+  border:1px solid var(--line);
+  border-radius:calc(2 * var(--radius));
+  background:var(--white);
+  box-shadow:0 12px 44px #232a3040;
+  text-align:center;
+}
+.save-card p { font-size:1.3rem; font-weight:750 }
+.save-card small { color:var(--muted); font-size:.95rem }
+.save-mark {
+  position:relative;
+  display:grid;
+  place-items:center;
+  width:3.5rem;
+  height:3.5rem;
+  margin-bottom:.15rem;
+  border-radius:50%;
+  background:var(--accent-soft);
+  color:var(--accent-dark);
+}
+.save-mark .icon { width:1.8rem; height:1.8rem }
+.save-success .save-mark { background:#e6f3eb; color:#196342 }
+@media (prefers-reduced-motion:no-preference) {
+  .save-card { animation:save-pop 260ms ease-out both }
+  .save-success .save-mark::before {
+    content:"";
+    position:absolute;
+    inset:0;
+    border:3px solid transparent;
+    border-top-color:currentColor;
+    border-right-color:currentColor;
+    border-radius:50%;
+    animation:save-spin 460ms ease-in-out both;
+  }
+  .save-success .save-mark .icon { animation:save-pop 240ms ease-out 460ms both }
+}
+@keyframes save-pop {
+  0% { opacity:0; transform:scale(.78) }
+  70% { opacity:1; transform:scale(1.05) }
+  100% { opacity:1; transform:scale(1) }
+}
+@keyframes save-spin {
+  0% { opacity:1; transform:rotate(0) }
+  80% { opacity:1 }
+  100% { opacity:0; transform:rotate(360deg) }
+}
 @media (max-width:1050px) {
   .metrics { grid-template-columns:repeat(2,minmax(0,1fr)) }
   .overview-grid { grid-template-columns:1fr }

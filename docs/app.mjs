@@ -6,6 +6,8 @@ import { repairs, booking, finance } from './operations.mjs';
 const app = document.querySelector('#app');
 const dialog = document.querySelector('#dialog');
 const toast = document.querySelector('#toast');
+const saveStatus = document.querySelector('#save-status');
+const saveAnnouncement = document.querySelector('#save-announcement');
 const dataKey = 'baanruam-demo-v1';
 const sessionKey = 'baanruam-account';
 
@@ -36,6 +38,7 @@ let reportRange = { start:'', end:'' };
 let drawerOpen = false;
 let callbacks = [];
 let toastTimeout;
+let saveStatusTimeout;
 
 function load() {
   try {
@@ -58,6 +61,22 @@ function tell(message) {
   toast.textContent = message;
   toast.classList.add('visible');
   toastTimeout = setTimeout(() => toast.classList.remove('visible'),4200);
+}
+function showSaveStatus(saved, message = 'บันทึกแล้ว', tabMessage = 'บันทึกสำหรับแท็บนี้แล้ว') {
+  clearTimeout(saveStatusTimeout);
+  saveStatus.hidePopover?.();
+  const title = saved ? message : tabMessage;
+  const detail = saved ? '' : 'เบราว์เซอร์จัดเก็บข้ามการรีเฟรชไม่ได้';
+  saveStatus.innerHTML = '<div class="save-card' + (saved ? ' save-success' : ' save-warning') +
+    '"><span class="save-mark">' + icon(saved ? 'check' : 'info') + '</span><p>' + esc(title) +
+    '</p>' + (detail ? '<small>' + esc(detail) + '</small>' : '') + '</div>';
+  saveStatus.showPopover?.();
+  saveAnnouncement.textContent = [title,detail].filter(Boolean).join(' ');
+  saveStatusTimeout = setTimeout(() => {
+    saveStatus.hidePopover?.();
+    saveStatus.replaceChildren();
+    saveAnnouncement.textContent = '';
+  },saved ? 2400 : 4200);
 }
 function go(page) {
   const next = '#/' + page;
@@ -119,7 +138,7 @@ function action(op, label, fields, preset = {}, opts = {}) {
     if (op === 'repair') go('repairs/' + result.id);
     else if (op === 'invoice') go('finance/' + result.id);
     else render();
-    tell(saved ? 'บันทึกแล้ว' : 'บันทึกสำหรับแท็บนี้แล้ว เบราว์เซอร์จัดเก็บข้ามการรีเฟรชไม่ได้');
+    showSaveStatus(saved);
   }, { summary:opts.summary, submitLabel:opts.check ? 'ยืนยันการจอง' : opts.submitLabel,
     check:opts.check ? f => availability(db,preset.facility,f.from,f.to) : null,
   }), { primary:opts.primary, symbol:opts.primary ? 'plus' : '', style:opts.primary ? '' : 'compact' });
@@ -151,6 +170,7 @@ function authDialog(register = false, username = '', message = '') {
       change(db,'','register',form);
       const saved = persist();
       authDialog(false,form.username.trim(),'ลงทะเบียนสำเร็จ กรอกรหัสผ่านเพื่อเข้าสู่ระบบ' + (saved ? '' : ' บัญชีนี้ใช้ได้ในแท็บนี้'));
+      showSaveStatus(saved,'ลงทะเบียนสำเร็จ','ลงทะเบียนแล้วสำหรับแท็บนี้');
       return;
     }
     signIn(form.username,form.password);
@@ -169,7 +189,7 @@ function resetDialog() {
     setSession('');
     dialog.close();
     go('home');
-    tell(saved ? 'คืนค่าข้อมูลเดโมแล้ว' : 'คืนค่าข้อมูลเดโมในแท็บนี้แล้ว');
+    showSaveStatus(saved,'คืนค่าข้อมูลเดโมแล้ว','คืนค่าข้อมูลเดโมในแท็บนี้แล้ว');
   },{summary:'ข้อมูลที่เพิ่มหรือแก้ไขในเบราว์เซอร์นี้จะถูกแทนด้วยชุดตัวอย่างเริ่มต้น',submitLabel:'คืนค่าข้อมูล'});
 }
 
